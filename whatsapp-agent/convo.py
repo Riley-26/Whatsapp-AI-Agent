@@ -5,7 +5,7 @@ Contains conversation history management
 '''
 
 conversation_store = {
-    "whatsapp:+14155238886": []
+    "whatsapp:+447585330551": []
 }
 
 # HISTORY FUNCTIONS
