@@ -30,7 +30,7 @@ def get_response(phone, user_message):
         max_tokens=1024,
         messages=messages
     )
-    print(claude_message)
+
     add_message(phone, "assistant", claude_message.content[0].text)
     
     return claude_message.content[0].text
