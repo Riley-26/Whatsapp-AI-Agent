@@ -8,7 +8,7 @@ from convo import get_history, add_message
 import anthropic
 from dotenv import load_dotenv
 
-load_dotenv("C:/Users/riley/Desktop/robotics/Agency/AI Agents/Testing/whatsapp-agent/.env")
+load_dotenv()
 
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL")
 
@@ -25,21 +25,19 @@ def get_response(phone, user_message):
     add_message(phone, "user", user_message)
     messages = get_history(phone)
     
-    if len(messages) > 0:
+    try:
         claude_message = client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=1024,
             messages=messages
         )
-    else:
-        claude_message = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=1024
-        )
 
-    add_message(phone, "assistant", claude_message.content[0].text)
+        add_message(phone, "assistant", claude_message.content[0].text)
 
-    return claude_message.content[0].text
+        return claude_message.content[0].text
+    except Exception as e:
+        print(f"Claude API error: {e}")
+        return "Sorry, I'm having trouble right now. Please try again."
     
 if __name__ == "__main__":
     # print(get_response("whatsapp:+14155238886", "Hello! How are you?"))

@@ -16,13 +16,9 @@ def get_history(phone):
     
     :param phone: Phone number
     '''
-    messages = []
-    if not phone:
-        return messages
-    
-    for i in conversation_store[phone]:
-        messages.append(i)
-    return messages
+    if phone not in conversation_store:
+        conversation_store[phone] = []
+    return conversation_store.get(phone, [])
 
 def add_message(phone, role, content):
     '''
@@ -32,13 +28,6 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
-    if not phone:
-        return "No phone number provided"
-    if not role:
-        return "No role provided"
-    if not content:
-        return "No content provided"
-    
     message = {
         "role": role,
         "content": content

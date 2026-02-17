@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
 import os
@@ -11,6 +12,8 @@ from claude import get_response
 The main server to bridge messages/prompts from whatsapp and Agent responses.
 
 '''
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -29,9 +32,7 @@ async def health_check():
 @app.post("/webhook")
 async def webhook_handler(
     Body: str = Form(...),
-    From: str = Form(...),
-    To: str = Form(...),
-    MessageSid: str = Form(None)
+    From: str = Form(...)
 ):
     print(f"Message from {From}: {Body}")
     agent_response_text = get_response(From, Body)
