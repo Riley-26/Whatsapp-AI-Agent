@@ -3,7 +3,7 @@ import uvicorn
 import os
 from twilio.rest import Client
 import json
-from fastapi import Request
+from fastapi import Request, Form
 from claude import get_response
 
 '''
@@ -28,8 +28,9 @@ async def health_check():
 
 @app.post("/webhook")
 async def webhook_handler(request: Request):
-    print(request.body)
-    agent_response_text = get_response(PHONE_NUMBER, request.body)
+    form_data = await request.form()
+    print(form_data)
+    agent_response_text = get_response(PHONE_NUMBER, Form(form_data.body))
     
     message = twilio_client.messages.create(
         from_="whatsapp:+14155238886",
