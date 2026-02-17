@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 import uvicorn
 import os
-from dotenv import load_dotenv
 from twilio.rest import Client
 import json
 
@@ -11,8 +9,6 @@ import json
 The main server to bridge messages/prompts from whatsapp and Agent responses.
 
 '''
-
-load_dotenv("C:/Users/riley/Desktop/robotics/Agency/AI Agents/Testing/whatsapp-agent/.env")
 
 app = FastAPI()
 
