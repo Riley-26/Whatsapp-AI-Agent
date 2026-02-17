@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv("C:/Users/riley/Desktop/robotics/Agency/AI Agents/Testing/whatsapp-agent/.env")
 
-CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL")
 
 client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 

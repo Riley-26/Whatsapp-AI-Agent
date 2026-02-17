@@ -16,7 +16,7 @@ app = FastAPI()
 
 twilio_client = Client(account_sid=os.getenv("TWILIO_ACCOUNT_SID"), password=os.getenv("TWILIO_AUTH_TOKEN"))
 
-PHONE_NUMBER = "whatsapp:+447585330551"
+PHONE_NUMBER = os.getenv("PHONE_NUMBER")
 
 @app.get("/")
 async def root():
