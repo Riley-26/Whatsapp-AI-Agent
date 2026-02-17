@@ -27,8 +27,7 @@ async def health_check():
 
 @app.post("/webhook")
 async def webhook_handler(request: Request):
-    data = await request.json()
-    print(data)
+    print(request)
     return
     agent_response_text = ""
     
