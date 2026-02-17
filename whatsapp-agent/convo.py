@@ -18,7 +18,7 @@ def get_history(phone):
     '''
     messages = []
     if not phone:
-        return "No phone number provided"
+        return messages
     
     for i in conversation_store[phone]:
         messages.append(i)

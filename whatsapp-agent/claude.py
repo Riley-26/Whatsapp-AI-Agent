@@ -25,11 +25,17 @@ def get_response(phone, user_message):
     add_message(phone, "user", user_message)
     messages = get_history(phone)
     
-    claude_message = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=1024,
-        messages=messages
-    )
+    if len(messages) > 0:
+        claude_message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=1024,
+            messages=messages
+        )
+    else:
+        claude_message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=1024
+        )
 
     add_message(phone, "assistant", claude_message.content[0].text)
     
