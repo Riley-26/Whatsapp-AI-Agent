@@ -27,10 +27,14 @@ async def health_check():
     return {"status": "ok"}
 
 @app.post("/webhook")
-async def webhook_handler(request: Request):
-    form_data = await request.form()
-    print(form_data)
-    agent_response_text = get_response(PHONE_NUMBER, Form(form_data.body))
+async def webhook_handler(
+    Body: str = Form(...),
+    From: str = Form(...),
+    To: str = Form(...),
+    MessageSid: str = Form(None)
+):
+    print(f"Message from {From}: {Body}")
+    agent_response_text = get_response(From, Body)
     
     message = twilio_client.messages.create(
         from_="whatsapp:+14155238886",
