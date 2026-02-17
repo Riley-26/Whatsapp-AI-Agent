@@ -28,6 +28,7 @@ async def health_check():
 
 @app.post("/webhook")
 async def webhook_handler(request: Request):
+    print(request.body)
     agent_response_text = get_response(PHONE_NUMBER, request.body)
     
     message = twilio_client.messages.create(

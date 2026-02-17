@@ -24,6 +24,7 @@ def get_response(phone, user_message):
     '''
     add_message(phone, "user", user_message)
     messages = get_history(phone)
+    print(messages)
     
     if len(messages) > 0:
         claude_message = client.messages.create(
@@ -38,7 +39,7 @@ def get_response(phone, user_message):
         )
 
     add_message(phone, "assistant", claude_message.content[0].text)
-    
+    print(claude_message)
     return claude_message.content[0].text
     
 if __name__ == "__main__":
