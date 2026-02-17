@@ -3,6 +3,7 @@ import uvicorn
 import os
 from twilio.rest import Client
 import json
+from fastapi import Request
 
 '''
 
@@ -14,6 +15,8 @@ app = FastAPI()
 
 twilio_client = Client(account_sid=os.getenv("TWILIO_ACCOUNT_SID"), password=os.getenv("TWILIO_AUTH_TOKEN"))
 
+PHONE_NUMBER = "whatsapp:+447585330551"
+
 @app.get("/")
 async def root():
     return {"message": "WhatsApp Agent Server"}
@@ -23,12 +26,17 @@ async def health_check():
     return {"status": "ok"}
 
 @app.post("/webhook")
-async def webhook_handler():
+async def webhook_handler(request: Request):
+    data = await request.json()
+    print(data)
+    return
+    agent_response_text = ""
+    
     message = twilio_client.messages.create(
         from_="whatsapp:+14155238886",
-        to="whatsapp:+447585330551",
-        content_sid="HXb5b62575e6e4ff6129ad7c8efe1f983e",
-        content_variables=json.dumps({"1": "22 July 2026", "2": "3:15pm"}),
+        to=PHONE_NUMBER,
+        content_sid="HX448d22e244c513bbe65a0645536b9e5c",
+        content_variables=json.dumps({"message": agent_response_text}),
     )
     
     print(message.body)
