@@ -24,7 +24,7 @@ async def health_check():
 
 @app.post("/webhook")
 async def webhook_handler():
-    message = twilio_client.messages.Client(
+    message = twilio_client.messages.create(
         from_="whatsapp:+14155238886",
         to="whatsapp:+447585330551",
         content_sid="HXb5b62575e6e4ff6129ad7c8efe1f983e",
