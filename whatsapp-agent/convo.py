@@ -3,8 +3,22 @@
 Contains conversation history management
 
 '''
+import psycopg2
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 conversation_store = {}
+
+conn = psycopg2.connect(
+    host=os.getenv("DB_HOST"),
+    port=os.getenv("DB_PORT", 5432),
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD")
+)
 
 # HISTORY FUNCTIONS
 
@@ -14,9 +28,38 @@ def get_history(phone):
     
     :param phone: Phone number
     '''
-    if phone not in conversation_store:
-        conversation_store[phone] = []
-    return conversation_store.get(phone, [])
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT m.role, m.content
+            FROM conversations c
+            JOIN messages m ON c.id = m.conversation_id
+            WHERE c.phone_number = %s
+            ORDER BY m.created_at ASC
+        """, (phone,))
+        
+        rows = cur.fetchall()
+        return [{"role": row[0], "content": row[1]} for row in rows]
+    
+def get_recent_history(phone, limit=50):
+    '''
+    Get last N messages to stay under context window
+    
+    :param phone: Phone number
+    :param limit: How many rows to get
+    '''
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT m.role, m.content 
+            FROM conversations c
+            JOIN messages m ON c.id = m.conversation_id
+            WHERE c.phone_number = %s
+            ORDER BY m.created_at DESC
+            LIMIT %s
+        """, (phone, limit))
+        
+        rows = cur.fetchall()
+        rows.reverse()  # Oldest first for Claude
+        return [{"role": row[0], "content": row[1]} for row in rows]
 
 def add_message(phone, role, content):
     '''
@@ -26,14 +69,38 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
-    message = {
-        "role": role,
-        "content": content
-    }
-    conversation_store[phone].append(message)
+    with conn.cursor() as cur:
+        # Get or create conversation
+        cur.execute("""
+            INSERT INTO conversations (phone_number)
+            VALUES (%s)
+            ON CONFLICT (phone_number) DO UPDATE SET updated_at = NOW()
+            RETURNING id
+        """, (phone,))
+        conv_id = cur.fetchone()[0]
+        
+        # Add message
+        cur.execute("""
+            INSERT INTO messages (conversation_id, role, content)
+            VALUES (%s, %s, %s)
+        """, (conv_id, role, json.dumps(content)))
+        
+        conn.commit()
     
-    return message
+def clear_conversation(phone):
+    '''
+    Deletes conversation history on request.
+    
+    :param phone: Phone number
+    '''
+    with conn.cursor() as cur:
+        # Deletes conversation
+        cur.execute("""
+            DELETE FROM conversations WHERE phone_number = %s
+        """, (phone,))
+        
+        conn.commit()
     
 
 if __name__ == "__main__":
-    pass
+    add_message(os.getenv("PHONE_NUMBER"), "user", "Hello there")

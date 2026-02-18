@@ -22,8 +22,8 @@ def get_response(phone, user_message):
     :param phone: Phone number
     :param user_message: Message to be formatted for Claude API
     '''
+    add_message(phone, "user", user_message)
     messages = get_history(phone)
-    messages.append(add_message(phone, "user", user_message))
     
     try:
         claude_message = client.messages.create(
