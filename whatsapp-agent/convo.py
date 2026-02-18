@@ -69,6 +69,9 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
+    if isinstance(content, str):
+        content = [{"type": "text", "text": content}]
+        
     with conn.cursor() as cur:
         # Get or create conversation
         cur.execute("""

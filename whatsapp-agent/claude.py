@@ -7,6 +7,7 @@ import os
 from convo import get_history, add_message
 import anthropic
 from dotenv import load_dotenv
+from tools import execute_tool, tools
 
 load_dotenv()
 
@@ -26,19 +27,45 @@ def get_response(phone, user_message):
     messages = get_history(phone)
     
     try:
-        claude_message = client.messages.create(
+        claude_response = client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=1024,
-            messages=messages
+            messages=messages,
+            tools=tools
         )
-
-        add_message(phone, "assistant", claude_message.content[0].text)
-
-        return claude_message.content[0].text
+        
+        # Check if Claude wants to use a tool
+        while claude_response.stop_reason == "tool_use":
+            # Save Claude's response (text + tool use)
+            add_message(phone, "assistant", claude_response.content)
+            
+            # Extract and execute tool calls
+            tool_results = []
+            for block in claude_response.content:
+                if block.type == "tool_use":
+                    result = execute_tool(block.name, block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": result
+                    })
+            
+            add_message(phone, "user", tool_results)
+            messages = get_history(phone)
+        
+            # Call Claude again with tool results
+            claude_response = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=1024,
+                messages=messages,
+                tools=tools
+            )
+        
+        add_message(phone, "assistant", claude_response.content[0].text)
+        return claude_response.content[0].text
     except Exception as e:
         print(f"Claude API error: {e}")
         return "Sorry, I'm having trouble right now. Please try again."
     
 if __name__ == "__main__":
-    # print(get_response("whatsapp:+14155238886", "Hello! How are you?"))
-    pass
+    print(get_response("whatsapp:+14155238886", "Hello! Can you tell me the weather in London at the moment?"))
