@@ -4,9 +4,7 @@ Contains conversation history management
 
 '''
 
-conversation_store = {
-    "whatsapp:+447585330551": []
-}
+conversation_store = {}
 
 # HISTORY FUNCTIONS
 
@@ -34,7 +32,7 @@ def add_message(phone, role, content):
     }
     conversation_store[phone].append(message)
     
-    return "Message added"
+    return message
     
 
 if __name__ == "__main__":
