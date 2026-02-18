@@ -36,6 +36,7 @@ def get_response(phone, user_message):
         
         # Check if Claude wants to use a tool
         while claude_response.stop_reason == "tool_use":
+            print(claude_response.content)
             # Save Claude's response (text + tool use)
             add_message(phone, "assistant", claude_response.content)
             
@@ -61,8 +62,14 @@ def get_response(phone, user_message):
                 tools=tools
             )
         
-        add_message(phone, "assistant", claude_response.content[0].text)
-        return claude_response.content[0].text
+        text_parts = []
+        for block in claude_response.content:
+            if block.type == "text":
+                text_parts.append(block.text)
+        final_text = "".join(text_parts) if text_parts else ""
+        
+        add_message(phone, "assistant", final_text)
+        return final_text
     except Exception as e:
         print(f"Claude API error: {e}")
         return "Sorry, I'm having trouble right now. Please try again."
