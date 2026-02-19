@@ -138,3 +138,6 @@ def generate_image(prompt, size="1024x1024", quality="medium", output_format="pn
     except Exception as e:
         print(e)
         return f"Failed to generate image: {e}"
+    
+def edit_image():
+    pass
