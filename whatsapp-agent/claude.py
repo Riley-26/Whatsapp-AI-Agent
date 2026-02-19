@@ -37,10 +37,23 @@ def get_response(phone, user_message):
         # Check if Claude wants to use a tool
         while claude_response.stop_reason == "tool_use":
             print(claude_response.content)
-            # Save Claude's response (text + tool use)
-            add_message(phone, "assistant", claude_response.content)
             
-            # Extract and execute tool calls
+            # Save Claude's response
+            agent_content = []
+            for block in claude_response.content:
+                if block.type == "text":
+                    agent_content.append({"type": "text", "text": block.text})
+                elif block.type == "tool_use":
+                    agent_content.append({
+                        "type": "tool_use",
+                        "id": block.id,
+                        "name": block.name,
+                        "input": block.input
+                    })
+                    
+            add_message(phone, "assistant", agent_content)
+            
+            # Execute tools
             tool_results = []
             for block in claude_response.content:
                 if block.type == "tool_use":
@@ -48,9 +61,13 @@ def get_response(phone, user_message):
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": result
+                        "content": [result]
                     })
-            
+                    # Save image url if generated
+                    if result["type"] == "image":
+                        image_url = result["source"]["url"]
+                
+            # Add tool results to conversation
             add_message(phone, "user", tool_results)
             messages = get_history(phone)
         
@@ -61,7 +78,8 @@ def get_response(phone, user_message):
                 messages=messages,
                 tools=tools
             )
-        
+
+        # Extract text from results
         text_parts = []
         for block in claude_response.content:
             if block.type == "text":
@@ -69,10 +87,11 @@ def get_response(phone, user_message):
         final_text = "".join(text_parts) if text_parts else ""
         
         add_message(phone, "assistant", final_text)
-        return final_text
+
+        return final_text, image_url if image_url else None
     except Exception as e:
         print(f"Claude API error: {e}")
         return "Sorry, I'm having trouble right now. Please try again."
     
 if __name__ == "__main__":
-    print(get_response("whatsapp:+14155238886", "Hello! Can you tell me the weather in London at the moment?"))
+    print(get_response("whatsapp:+14155238886", "Hello! Can you generate me an image of the moon?"))

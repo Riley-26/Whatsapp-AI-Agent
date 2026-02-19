@@ -71,6 +71,8 @@ def add_message(phone, role, content):
     '''
     if isinstance(content, str):
         content = [{"type": "text", "text": content}]
+    elif isinstance(content, dict) and "image_url" in content:
+        content = [content]
         
     with conn.cursor() as cur:
         # Get or create conversation
