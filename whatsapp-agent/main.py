@@ -38,8 +38,7 @@ async def health_check():
 @app.get("/images/{image_id}.{image_format}")
 async def serve_image(image_id: str, image_format: str):
     image_path = IMAGES_DIR / f"{image_id}.{image_format}"
-    if not image_path.exists():
-        return image_path
+    if not image_path:
         return {"error": "Image not found"}
     
     return FileResponse(image_path, media_type=f"image/{image_format}")
