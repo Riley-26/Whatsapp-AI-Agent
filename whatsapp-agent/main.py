@@ -65,12 +65,6 @@ async def webhook_handler(
             content_sid="HX448d22e244c513bbe65a0645536b9e5c",
             content_variables=json.dumps({"message": agent_response_text})
         )
-        twilio_client.messages.create(
-            from_="whatsapp:+14155238886",
-            to=From,
-            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
-            content_variables=json.dumps({"message": agent_response_text}),
-        )
     else:
         twilio_client.messages.create(
             from_="whatsapp:+14155238886",
