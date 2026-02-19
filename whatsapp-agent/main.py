@@ -1,6 +1,6 @@
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse
 import uvicorn
 import os
@@ -66,9 +66,10 @@ async def webhook_handler(
             from_="whatsapp:+14155238886",
             to=From,
             media_url=[public_url],
-            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
-            content_variables=json.dumps({"message": agent_response_text})
+            body=agent_response_text if agent_response_text else ""
         )
+        
+        return Response(content="", media_type="text/plain")
     else:
         twilio_client.messages.create(
             from_="whatsapp:+14155238886",
@@ -76,7 +77,8 @@ async def webhook_handler(
             content_sid="HX448d22e244c513bbe65a0645536b9e5c",
             content_variables=json.dumps({"message": agent_response_text}),
         )
-        
+
+        return Response(content="", media_type="text/plain")
     
 
 if __name__ == "__main__":
