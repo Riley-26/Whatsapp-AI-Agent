@@ -52,7 +52,7 @@ def get_response(phone, user_message):
                     })
                     
             add_message(phone, "assistant", agent_content)
-            
+
             # Execute tools
             tool_results = []
             for block in claude_response.content:
@@ -61,11 +61,8 @@ def get_response(phone, user_message):
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": [result]
+                        "content": result
                     })
-                    # Save image url if generated
-                    if result["type"] == "image":
-                        image_url = result["source"]["url"]
                 
             # Add tool results to conversation
             add_message(phone, "user", tool_results)
@@ -88,7 +85,7 @@ def get_response(phone, user_message):
         
         add_message(phone, "assistant", final_text)
 
-        return final_text, image_url if image_url else None
+        return final_text
     except Exception as e:
         print(f"Claude API error: {e}")
         return "Sorry, I'm having trouble right now. Please try again."
