@@ -35,15 +35,22 @@ async def webhook_handler(
     From: str = Form(...)
 ):
     print(f"Message from {From}: {Body}")
-    agent_response_text = get_response(From, Body)
+    agent_response_text, image_url = get_response(From, Body)
     
-    message = twilio_client.messages.create(
-        from_="whatsapp:+14155238886",
-        to=PHONE_NUMBER,
-        content_sid="HX448d22e244c513bbe65a0645536b9e5c",
-        content_variables=json.dumps({"message": agent_response_text}),
-    )
-    
+    if image_url:
+        message = twilio_client.messages.create(
+            from_="whatsapp:+14155238886",
+            to=PHONE_NUMBER,
+            media_url=[image_url]
+        )
+    else:
+        message = twilio_client.messages.create(
+            from_="whatsapp:+14155238886",
+            to=PHONE_NUMBER,
+            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
+            content_variables=json.dumps({"message": agent_response_text}),
+        )
+        
     print(message.body)
     
 
