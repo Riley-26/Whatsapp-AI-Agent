@@ -52,6 +52,8 @@ async def webhook_handler(
 ):
     print(f"Message from {From}: {Body}")
     agent_response_text = get_response(From, Body)
+    print(agent_response_text)
+    print("IMAGE_ID" in agent_response_text)
     
     if "IMAGE_ID: " in agent_response_text:
         image_id = agent_response_text.split("IMAGE_ID: ")[1].split()[0]
@@ -74,6 +76,7 @@ async def webhook_handler(
             content_sid="HX448d22e244c513bbe65a0645536b9e5c",
             content_variables=json.dumps({"message": agent_response_text}),
         )
+        
     
 
 if __name__ == "__main__":
