@@ -16,7 +16,8 @@ load_dotenv()
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
 
-IMAGES_DIR = Path("/images")
+import tempfile
+IMAGES_DIR = Path(tempfile.gettempdir()) / "images"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 tools = [
