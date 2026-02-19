@@ -58,26 +58,26 @@ async def webhook_handler(
         image_format = agent_response_text.split("IMAGE_FORMAT: ")[1].split()[0]
         public_url = f"{BACKEND_URL}/images/{image_id}.{image_format}"
         
-        message = twilio_client.messages.create(
+        twilio_client.messages.create(
             from_="whatsapp:+14155238886",
-            to=PHONE_NUMBER,
-            media_url=[public_url]
+            to=From,
+            media_url=[public_url],
+            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
+            content_variables=json.dumps({"message": agent_response_text})
         )
-        message = twilio_client.messages.create(
+        twilio_client.messages.create(
             from_="whatsapp:+14155238886",
-            to=PHONE_NUMBER,
+            to=From,
             content_sid="HX448d22e244c513bbe65a0645536b9e5c",
             content_variables=json.dumps({"message": agent_response_text}),
         )
     else:
-        message = twilio_client.messages.create(
+        twilio_client.messages.create(
             from_="whatsapp:+14155238886",
-            to=PHONE_NUMBER,
+            to=From,
             content_sid="HX448d22e244c513bbe65a0645536b9e5c",
             content_variables=json.dumps({"message": agent_response_text}),
         )
-        
-    print(message.body)
     
 
 if __name__ == "__main__":
