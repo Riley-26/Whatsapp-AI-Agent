@@ -57,6 +57,8 @@ async def webhook_handler(
         image_id = agent_response_text.split("IMAGE_ID: ")[1].split()[0]
         image_format = agent_response_text.split("IMAGE_FORMAT: ")[1].split()[0]
         public_url = f"{BACKEND_URL}/images/{image_id}.{image_format}"
+        print(image_id, image_format)
+        print(public_url)
         
         twilio_client.messages.create(
             from_="whatsapp:+14155238886",
