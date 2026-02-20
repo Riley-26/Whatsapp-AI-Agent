@@ -15,13 +15,15 @@ CLAUDE_MODEL = os.getenv("CLAUDE_MODEL")
 
 client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 
-def get_response(phone, user_message, media):
+def get_response(phone, user_message, media, send_callback=None):
     '''
-    Gets conversation history, adds the new message, calls Claude API 
+    Gets conversation history, adds the new message, calls Claude API
     with full history then saves Claude's response to the history while returning it.
-    
+
     :param phone: Phone number
     :param user_message: Message to be formatted for Claude API
+    :param send_callback: Optional function(text) called immediately when Claude
+                          produces text alongside a tool_use request
     '''
     if len(media) > 0:
         add_message(phone, "user", {
@@ -45,10 +47,16 @@ def get_response(phone, user_message, media):
         # Check if Claude wants to use a tool
         while claude_response.stop_reason == "tool_use":
             print(claude_response.content)
-            
+
+            # Send any accompanying text immediately before tool execution
+            if send_callback:
+                for block in claude_response.content:
+                    if block.type == "text" and block.text.strip():
+                        send_callback(block.text)
+
             # Save Claude's response
-            agent_content = []
             for block in claude_response.content:
+                agent_content = []
                 if block.type == "text":
                     agent_content.append({"type": "text", "text": block.text})
                 elif block.type == "tool_use":
@@ -59,7 +67,7 @@ def get_response(phone, user_message, media):
                         "input": block.input
                     })
                     
-            add_message(phone, "assistant", agent_content)
+                add_message(phone, "assistant", agent_content)
 
             # Execute tools
             tool_results = []
@@ -69,7 +77,7 @@ def get_response(phone, user_message, media):
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": [result]
+                        "content": result
                     })
                 
             # Add tool results to conversation

@@ -81,7 +81,15 @@ async def webhook_handler(request: Request):
                 "url": local_url,
             })
 
-    agent_response_text, tool_result = await asyncio.to_thread(get_response, From, Body, Media_items)
+    def send_text_now(text: str):
+        twilio_client.messages.create(
+            from_="whatsapp:+14155238886",
+            to=From,
+            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
+            content_variables=json.dumps({"message": text}),
+        )
+
+    agent_response_text, tool_result = await asyncio.to_thread(get_response, From, Body, Media_items, send_text_now)
     
     if isinstance(tool_result, dict) and tool_result.get("type") == "image":
         source = tool_result.get("source", None)
