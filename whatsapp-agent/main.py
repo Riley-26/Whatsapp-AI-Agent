@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 import uvicorn
 import os
 import requests
+import base64
 from twilio.rest import Client
 import json
 from fastapi import Request, Form
@@ -68,13 +69,16 @@ async def webhook_handler(request: Request):
             if resp.status_code == 200:
                 (IMAGES_DIR / f"{image_id}.{image_format}").write_bytes(resp.content)
                 local_url = f"{BACKEND_URL}/images/{image_id}.{image_format}"
+                image_b64 = base64.standard_b64encode(resp.content).decode("utf-8")
             else:
                 local_url = media_url  # fallback to Twilio URL if download fails
+                image_b64 = None
 
             Media_items.append({
                 "id": image_id,
-                "format": image_format,
-                "url": local_url
+                "media_type": content_type,
+                "url": local_url,
+                "base64": image_b64,
             })
         
     agent_response_text, tool_result = get_response(From, Body, Media_items)

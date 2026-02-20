@@ -96,7 +96,7 @@ def get_response(phone, user_message, media):
         return final_text, result
     except Exception as e:
         print(f"Claude API error: {e}")
-        return "Sorry, I'm having trouble right now. Please try again."
+        return "Sorry, I'm having trouble right now. Please try again.", ""
     
 def find_image_in_history(phone, reference):
     """Find an image in conversation history based on reference"""
