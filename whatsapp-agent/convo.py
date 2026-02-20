@@ -73,10 +73,10 @@ def add_message(phone, role, content):
     if isinstance(content, dict) and "image_id" in content:
         content_json = [{
             "type": "image",
-            "image_id": content["image_id"],
-            "format": content.get("format", "png"),
-            "prompt": content.get("prompt", ""),
-            "timestamp": content.get("timestamp", datetime.now().isoformat())
+            "source": {
+                "type": "url",
+                "url": content.get("url")
+            }
         }]
     elif isinstance(content, str):
         content_json = [{"type": "text", "text": content}]

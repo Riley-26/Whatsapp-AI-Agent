@@ -21,6 +21,9 @@ import tempfile
 IMAGES_DIR = Path(tempfile.gettempdir()) / "images"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
+BACKEND_URL = "https://testing-dev.up.railway.app"
+# BACKEND_URL = "https://testing-production-2f9c.up.railway.app"
+
 tools = [
     {
         "name": "web_search",
@@ -168,10 +171,7 @@ def _generate_image(prompt, size="1024x1024", quality="medium", output_format="p
             f.write(image_bytes)
             
         return {
-            "image_id": image_id,
-            "format": output_format,
-            "prompt": prompt,
-            "timestamp": datetime.now().isoformat()
+            "url": f"{BACKEND_URL}/images/{image_id}.{output_format}"
         }
             
     except Exception as e:
