@@ -70,6 +70,8 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
+    print(content)
+    print(type(content))
     if isinstance(content, dict):
         media = content.get("media", None)
         # If adding a user-sent media message
