@@ -24,10 +24,10 @@ def get_response(phone, user_message, media):
     :param user_message: Message to be formatted for Claude API
     '''
     if len(media) > 0:
-        add_message(phone, "user", {
+        add_message(phone, "user", [{
             "user_message": user_message,
             "media": media
-        })
+        }])
     else:
         add_message(phone, "user", user_message)
     messages = get_history(phone)
@@ -69,7 +69,7 @@ def get_response(phone, user_message, media):
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": result
+                        "content": [result]
                     })
                 
             # Add tool results to conversation
