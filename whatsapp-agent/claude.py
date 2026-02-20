@@ -15,7 +15,7 @@ CLAUDE_MODEL = os.getenv("CLAUDE_MODEL")
 
 client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 
-def get_response(phone, user_message):
+def get_response(phone, user_message, media):
     '''
     Gets conversation history, adds the new message, calls Claude API 
     with full history then saves Claude's response to the history while returning it.
@@ -23,7 +23,13 @@ def get_response(phone, user_message):
     :param phone: Phone number
     :param user_message: Message to be formatted for Claude API
     '''
-    add_message(phone, "user", user_message)
+    if len(media) > 0:
+        add_message(phone, "user", {
+            "user_message": user_message,
+            "media": media
+        })
+    else:
+        add_message(phone, "user", user_message)
     messages = get_history(phone)
     
     try:
