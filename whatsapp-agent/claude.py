@@ -69,7 +69,7 @@ def get_response(phone, user_message, media):
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": [result]
+                        "content": result
                     })
                 
             # Add tool results to conversation
