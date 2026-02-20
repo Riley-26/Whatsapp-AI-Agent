@@ -84,7 +84,8 @@ async def webhook_handler(request: Request):
     agent_response_text, tool_result = await asyncio.to_thread(get_response, From, Body, Media_items)
     
     if isinstance(tool_result, dict) and tool_result.get("type") == "image":
-        public_url = tool_result.get("url", None)
+        source = tool_result.get("source", None)
+        public_url = source.get("url", None)
     else:
         public_url = None
     
