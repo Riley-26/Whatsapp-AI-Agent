@@ -79,7 +79,7 @@ def add_message(phone, role, content):
                 "type": "image",
                 "source": {
                     "type": "url",
-                    "url": media[i].get("url")
+                    "url": i.get("url")
                 }
             } for i in media]
             if message:
