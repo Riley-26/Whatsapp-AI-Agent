@@ -4,6 +4,7 @@ from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse
 import uvicorn
 import os
+import requests
 from twilio.rest import Client
 import json
 from fastapi import Request, Form
@@ -22,6 +23,7 @@ app = FastAPI()
 twilio_client = Client(account_sid=os.getenv("TWILIO_ACCOUNT_SID"), password=os.getenv("TWILIO_AUTH_TOKEN"))
 
 PHONE_NUMBER = os.getenv("PHONE_NUMBER")
+BACKEND_URL = "https://testing-dev.up.railway.app"
 
 import tempfile
 IMAGES_DIR = Path(tempfile.gettempdir()) / "images"
@@ -51,12 +53,28 @@ async def webhook_handler(request: Request):
     Media = form_data.get("NumMedia", "")
     Media_items = []
     
-    # Save media items
+    # Download and serve media items through our own endpoint
     if Media:
         for i in range(int(Media)):
+            media_url = form_data.get(f"MediaUrl{i}")
+            content_type = form_data.get(f"MediaContentType{i}", "image/jpeg")
+            image_format = content_type.split("/")[1]  # e.g. "jpeg" from "image/jpeg"
+            image_id = media_url.split("Media/")[1]
+
+            resp = requests.get(
+                media_url,
+                auth=(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
+            )
+            if resp.status_code == 200:
+                (IMAGES_DIR / f"{image_id}.{image_format}").write_bytes(resp.content)
+                local_url = f"{BACKEND_URL}/images/{image_id}.{image_format}"
+            else:
+                local_url = media_url  # fallback to Twilio URL if download fails
+
             Media_items.append({
-                "url": form_data.get(f"MediaUrl{i}"),
-                "format": form_data.get(f"MediaContentType{i}")
+                "id": image_id,
+                "format": image_format,
+                "url": local_url
             })
         
     agent_response_text, tool_result = get_response(From, Body, Media_items)
