@@ -44,12 +44,12 @@ async def serve_image(image_id: str, image_format: str):
     return FileResponse(image_path, media_type=f"image/{image_format}")
 
 @app.post("/webhook")
-async def webhook_handler(
-    Body: str = Form(...),
-    From: str = Form(...)
-):
-    print(f"Message from {From}: {Body}")
-    print(Body)
+async def webhook_handler(request: Request):
+    form_data = await request.form()
+    print(form_data)
+    print(form_data.get("Body", ""))
+    print(form_data.get("NumMedia", ""))
+    print(form_data.get("MediaUrl0", ""))
     return
     agent_response_text, tool_result = get_response(From, Body)
     
