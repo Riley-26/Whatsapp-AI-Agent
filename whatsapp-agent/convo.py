@@ -77,9 +77,8 @@ def add_message(phone, role, content):
         content_json = []
         for block in content:
             media = block.get("media", None)
-            print("here")
-            # If adding a user-sent media message
-            if media:
+
+            if media: # User-sent media message
                 message = block.get("user_message", None)
                 content_json.append({
                     "type": "image",
@@ -90,15 +89,10 @@ def add_message(phone, role, content):
                 } for i in media)
                 if message:
                     content_json.append({"type": "text", "text": message})
-            elif block.get("url", None):
-                print(block.get("url", None))
-                content_json = [{
-                    "type": "image",
-                    "source": {
-                        "type": "url",
-                        "url": block.get("url")
-                    }
-                }]
+            elif block.get("type", None) == "tool_result": # Tool content
+                content_json.append(block)
+            else: # Claude tool-use messages
+                content_json = content
     elif isinstance(content, str):
         content_json = [{"type": "text", "text": content}]
     else:

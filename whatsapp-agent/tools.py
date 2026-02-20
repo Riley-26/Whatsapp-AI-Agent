@@ -171,8 +171,14 @@ def _generate_image(prompt, size="1024x1024", quality="medium", output_format="p
             f.write(image_bytes)
             
         return {
-            "url": f"{BACKEND_URL}/images/{image_id}.{output_format}"
+            "type": "image",
+            "source": {
+                "type": "url",
+                "url": f"{BACKEND_URL}/images/{image_id}.{output_format}"
+            }
         }
+            
+        
             
     except Exception as e:
         print(e)
