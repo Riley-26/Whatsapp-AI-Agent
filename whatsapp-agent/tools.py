@@ -170,16 +170,13 @@ def _generate_image(prompt, size="1024x1024", quality="medium", output_format="p
         with open(image_path, "wb") as f:
             f.write(image_bytes)
             
-        return {
+        return [{
             "type": "image",
             "source": {
                 "type": "url",
                 "url": f"{BACKEND_URL}/images/{image_id}.{output_format}"
             }
-        }
-            
-        
-            
+        }]
     except Exception as e:
         print(e)
         return f"Failed to generate image: {e}"
