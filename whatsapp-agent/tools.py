@@ -3,6 +3,7 @@
 Tool suite
 
 '''
+from datetime import datetime
 from pathlib import Path
 import uuid
 import requests
@@ -83,6 +84,39 @@ tools = [
             },
             "required": ["prompt"]
         }
+    },
+    {
+        "name": "edit_image",
+        "description": """Edit a previously generated image from this conversation.
+    
+        To use this tool:
+        1. Look through the conversation history for images
+        2. Identify which image the user wants to edit (most recent, specific description, etc.)
+        3. Call this tool with the image reference and edit instructions
+        
+        Examples:
+        - "Edit the last image to make it darker" -> Find most recent image
+        - "Change the moon image to have stars" -> Find image with 'moon' in prompt
+        - "Make my cat image black and white" -> Find image with 'cat' in prompt""",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "image_reference": {
+                    "type": "string",
+                    "description": "How to identify the image: 'last', 'most_recent', or search term from original prompt"
+                },
+                "edit_instructions": {
+                    "type": "string",
+                    "description": "What changes to make to the image"
+                },
+                "mask": {
+                    "type": "string",
+                    "description": "Optional: Area to edit (not implemented yet)",
+                    "default": None
+                }
+            },
+            "required": ["image_reference", "edit_instructions"]
+        }
     }
 ]
 
@@ -95,7 +129,7 @@ def execute_tool(tool_name, tool_input):
     '''
     match tool_name:
         case "generate_image":
-            return generate_image(
+            return _generate_image(
                 prompt=tool_input["prompt"],
                 size=tool_input.get("size", "1024x1024"),
                 quality=tool_input.get("quality", "medium"),
@@ -106,7 +140,7 @@ def execute_tool(tool_name, tool_input):
         case _:
             return "No tool found"
             
-def generate_image(prompt, size="1024x1024", quality="medium", output_format="png", background=None, style=None):
+def _generate_image(prompt, size="1024x1024", quality="medium", output_format="png", background=None, style=None):
     '''
     Generate image using GPT
     Returns: URL to the generated image
@@ -133,11 +167,16 @@ def generate_image(prompt, size="1024x1024", quality="medium", output_format="pn
         with open(image_path, "wb") as f:
             f.write(image_bytes)
             
-        return f"Image generated successfully. IMAGE_ID: {image_id} IMAGE_FORMAT: {output_format}"
+        return {
+            "image_id": image_id,
+            "format": output_format,
+            "prompt": prompt,
+            "timestamp": datetime.now().isoformat()
+        }
             
     except Exception as e:
         print(e)
         return f"Failed to generate image: {e}"
     
-def edit_image():
+def _edit_image():
     pass

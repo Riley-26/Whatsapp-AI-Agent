@@ -63,7 +63,7 @@ def get_response(phone, user_message):
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": result
+                        "content": [result]
                     })
                 
             # Add tool results to conversation
@@ -91,6 +91,35 @@ def get_response(phone, user_message):
     except Exception as e:
         print(f"Claude API error: {e}")
         return "Sorry, I'm having trouble right now. Please try again."
+    
+def find_image_in_history(phone, reference):
+    """Find an image in conversation history based on reference"""
+    messages = get_history(phone)
+    images = []
+    
+    # Extract all images from history
+    for msg in messages:
+        if isinstance(msg["content"], list):
+            for block in msg["content"]:
+                if isinstance(block, dict) and block.get("type") == "image":
+                    images.append(block)
+    
+    if not images:
+        return None
+    
+    # Handle different reference types
+    if reference.lower() in ["last", "most_recent", "latest"]:
+        return images[-1]  # Return most recent
+    
+    # Search by prompt keywords
+    reference_lower = reference.lower()
+    for img in reversed(images):  # Search from most recent
+        if reference_lower in img.get("prompt", "").lower():
+            return img
+    
+    # If no match, return most recent
+    return images[-1]
+    
     
 if __name__ == "__main__":
     print(get_response("whatsapp:+14155238886", "Hello! Can you generate me an image of the moon?"))
