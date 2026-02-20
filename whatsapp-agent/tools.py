@@ -154,7 +154,7 @@ def _generate_image(prompt, size="1024x1024", quality="medium", output_format="p
     
     try:
         openai_response = openai_client.images.generate(
-            model="gpt-image-1-mini",
+            model=os.getenv("OPENAI_MODEL", "gpt-image-1-mini"),
             prompt=prompt,
             size=size,
             quality=quality,
