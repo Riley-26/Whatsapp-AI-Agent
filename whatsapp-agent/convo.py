@@ -70,7 +70,7 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
-    if isinstance(content, dict) and "image_id" in content:
+    if isinstance(content, dict) and "image" in content:
         content_json = [{
             "type": "image",
             "source": {
