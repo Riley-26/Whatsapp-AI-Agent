@@ -101,7 +101,7 @@ def get_response(phone, user_message, media, send_callback=None):
         
         add_message(phone, "assistant", final_text)
 
-        return final_text, result
+        return final_text, result[0] if isinstance(result, list) else result
     except Exception as e:
         print(f"Claude API error: {e}")
         return "Sorry, I'm having trouble right now. Please try again.", ""
