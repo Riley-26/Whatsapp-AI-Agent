@@ -3,9 +3,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse
 import uvicorn
+import asyncio
 import os
 import requests
-import base64
 from twilio.rest import Client
 import json
 from fastapi import Request, Form
@@ -62,26 +62,23 @@ async def webhook_handler(request: Request):
             image_format = content_type.split("/")[1]  # e.g. "jpeg" from "image/jpeg"
             image_id = media_url.split("Media/")[1]
 
-            resp = requests.get(
-                media_url,
+            resp = await asyncio.to_thread(
+                requests.get, media_url,
                 auth=(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
             )
             if resp.status_code == 200:
                 (IMAGES_DIR / f"{image_id}.{image_format}").write_bytes(resp.content)
                 local_url = f"{BACKEND_URL}/images/{image_id}.{image_format}"
-                image_b64 = base64.standard_b64encode(resp.content).decode("utf-8")
             else:
                 local_url = media_url  # fallback to Twilio URL if download fails
-                image_b64 = None
 
             Media_items.append({
                 "id": image_id,
                 "media_type": content_type,
                 "url": local_url,
-                "base64": image_b64,
             })
-        
-    agent_response_text, tool_result = get_response(From, Body, Media_items)
+
+    agent_response_text, tool_result = await asyncio.to_thread(get_response, From, Body, Media_items)
     
     if isinstance(tool_result, dict) and tool_result.get("type") == "image":
         public_url = tool_result.get("url", None)
