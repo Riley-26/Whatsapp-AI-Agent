@@ -75,13 +75,25 @@ def add_message(phone, role, content):
         # If adding a user-sent media message
         if media:
             message = content.get("user_message", None)
-            content_json = [{
-                "type": "image",
-                "source": {
-                    "type": "url",
-                    "url": i.get("url")
-                }
-            } for i in media]
+            content_json = []
+            for i in media:
+                if i.get("base64"):
+                    content_json.append({
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": i.get("media_type", "image/jpeg"),
+                            "data": i.get("base64"),
+                        }
+                    })
+                else:
+                    content_json.append({
+                        "type": "image",
+                        "source": {
+                            "type": "url",
+                            "url": i.get("url"),
+                        }
+                    })
             if message:
                 content_json.append({"type": "text", "text": message})
         elif content.get("url", None):
