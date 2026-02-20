@@ -92,7 +92,7 @@ def add_message(phone, role, content):
             elif block.get("type", None) == "tool_result": # Tool content
                 content_json.append(block)
             else: # Claude tool-use messages
-                content_json = content
+                content_json.extend(content)
     elif isinstance(content, str):
         content_json = [{"type": "text", "text": content}]
     else:
