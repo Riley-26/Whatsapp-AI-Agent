@@ -70,32 +70,35 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
-    print(content)
-    print(type(content))
-    if isinstance(content, dict):
-        media = content.get("media", None)
-        print("here")
-        # If adding a user-sent media message
-        if media:
-            message = content.get("user_message", None)
-            content_json = [{
-                "type": "image",
-                "source": {
-                    "type": "url",
-                    "url": i.get("url"),
-                }
-            } for i in media]
-            if message:
-                content_json.append({"type": "text", "text": message})
-        elif content.get("url", None):
-            print(content.get("url", None))
-            content_json = [{
-                "type": "image",
-                "source": {
-                    "type": "url",
-                    "url": content.get("url")
-                }
-            }]
+    
+    # list = Media items (i.e. images sent) or Tool use (via claude)
+    # str = Simple text message
+    if isinstance(content, list):
+        content_json = []
+        for block in content:
+            media = block.get("media", None)
+            print("here")
+            # If adding a user-sent media message
+            if media:
+                message = block.get("user_message", None)
+                content_json.append({
+                    "type": "image",
+                    "source": {
+                        "type": "url",
+                        "url": i.get("url"),
+                    }
+                } for i in media)
+                if message:
+                    content_json.append({"type": "text", "text": message})
+            elif block.get("url", None):
+                print(block.get("url", None))
+                content_json = [{
+                    "type": "image",
+                    "source": {
+                        "type": "url",
+                        "url": block.get("url")
+                    }
+                }]
     elif isinstance(content, str):
         content_json = [{"type": "text", "text": content}]
     else:
