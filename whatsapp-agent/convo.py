@@ -74,6 +74,7 @@ def add_message(phone, role, content):
     print(type(content))
     if isinstance(content, dict):
         media = content.get("media", None)
+        print("here")
         # If adding a user-sent media message
         if media:
             message = content.get("user_message", None)
@@ -87,6 +88,7 @@ def add_message(phone, role, content):
             if message:
                 content_json.append({"type": "text", "text": message})
         elif content.get("url", None):
+            print(content.get("url", None))
             content_json = [{
                 "type": "image",
                 "source": {
