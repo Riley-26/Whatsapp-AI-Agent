@@ -49,8 +49,14 @@ async def webhook_handler(
     From: str = Form(...)
 ):
     print(f"Message from {From}: {Body}")
+    print(Body)
+    return
     agent_response_text, tool_result = get_response(From, Body)
-    public_url = tool_result.get("url", None)
+    
+    if isinstance(tool_result, dict) and tool_result.get("type") == "image":
+        public_url = tool_result.get("url", None)
+    else:
+        public_url = None
     
     if public_url: # Checks if it's an image
         twilio_client.messages.create(
