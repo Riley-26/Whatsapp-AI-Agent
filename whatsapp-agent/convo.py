@@ -71,25 +71,27 @@ def add_message(phone, role, content):
     :param content: Message content
     '''
     
-    # list = Media items (i.e. images sent) or Tool use (via claude)
+    # dict = Media items
+    # list = Tool use (claude formatted)
     # str = Simple text message
-    if isinstance(content, list):
+    if isinstance(content, dict):
+        media = content.get("media", None)
+
+        if media: # User-sent media message
+            message = content.get("user_message", None)
+            content_json.append({
+                "type": "image",
+                "source": {
+                    "type": "url",
+                    "url": i.get("url"),
+                }
+            } for i in media)
+            if message:
+                content_json.append({"type": "text", "text": message})
+    elif isinstance(content, list):
         content_json = []
         for block in content:
-            media = block.get("media", None)
-
-            if media: # User-sent media message
-                message = block.get("user_message", None)
-                content_json.append({
-                    "type": "image",
-                    "source": {
-                        "type": "url",
-                        "url": i.get("url"),
-                    }
-                } for i in media)
-                if message:
-                    content_json.append({"type": "text", "text": message})
-            elif block.get("type", None) == "tool_result": # Tool content
+            if block.get("type", None) == "tool_result": # Tool content
                 content_json.append(block)
             else: # Claude tool-use messages
                 content_json.extend(content)
