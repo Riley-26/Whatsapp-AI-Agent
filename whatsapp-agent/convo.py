@@ -74,6 +74,7 @@ def add_message(phone, role, content):
     # dict = Media items
     # list = Tool use (claude formatted)
     # str = Simple text message
+    content_json = []
     if isinstance(content, dict):
         media = content.get("media", None)
 
@@ -89,7 +90,6 @@ def add_message(phone, role, content):
             if message:
                 content_json.append({"type": "text", "text": message})
     elif isinstance(content, list):
-        content_json = []
         for block in content:
             if block.get("type", None) == "tool_result": # Tool content
                 content_json.append(block)
