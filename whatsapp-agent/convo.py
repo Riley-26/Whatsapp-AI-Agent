@@ -3,6 +3,7 @@
 Contains conversation history management
 
 '''
+from datetime import datetime
 import psycopg2
 import json
 import os
@@ -69,8 +70,18 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
-    if isinstance(content, str):
-        content = [{"type": "text", "text": content}]
+    if isinstance(content, dict) and "image_id" in content:
+        content_json = [{
+            "type": "image",
+            "image_id": content["image_id"],
+            "format": content.get("format", "png"),
+            "prompt": content.get("prompt", ""),
+            "timestamp": content.get("timestamp", datetime.now().isoformat())
+        }]
+    elif isinstance(content, str):
+        content_json = [{"type": "text", "text": content}]
+    else:
+        content_json = content
         
     with conn.cursor() as cur:
         # Get or create conversation
@@ -86,7 +97,7 @@ def add_message(phone, role, content):
         cur.execute("""
             INSERT INTO messages (conversation_id, role, content)
             VALUES (%s, %s, %s)
-        """, (conv_id, role, json.dumps(content)))
+        """, (conv_id, role, json.dumps(content_json)))
         
         conn.commit()
     
