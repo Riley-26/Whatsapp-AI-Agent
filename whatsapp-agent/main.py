@@ -46,12 +46,20 @@ async def serve_image(image_id: str, image_format: str):
 @app.post("/webhook")
 async def webhook_handler(request: Request):
     form_data = await request.form()
-    print(form_data)
-    print(form_data.get("Body", ""))
-    print(form_data.get("NumMedia", ""))
-    print(form_data.get("MediaUrl0", ""))
-    return
-    agent_response_text, tool_result = get_response(From, Body)
+    Body = form_data.get("Body", "")
+    From = form_data.get("From", "")
+    Media = form_data.get("NumMedia", "")
+    Media_items = []
+    
+    # Save media items
+    if Media:
+        for i in range(int(Media)):
+            Media_items.append({
+                "url": form_data.get(f"MediaUrl{i}"),
+                "format": form_data.get(f"MediaContentType{i}")
+            })
+        
+    agent_response_text, tool_result = get_response(From, Body, Media_items)
     
     if isinstance(tool_result, dict) and tool_result.get("type") == "image":
         public_url = tool_result.get("url", None)

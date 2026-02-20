@@ -70,14 +70,28 @@ def add_message(phone, role, content):
     :param role: Role for Claude API, "user" or "assistant"
     :param content: Message content
     '''
-    if isinstance(content, dict) and content.get("url", None):
-        content_json = [{
-            "type": "image",
-            "source": {
-                "type": "url",
-                "url": content.get("url")
-            }
-        }]
+    if isinstance(content, dict):
+        media = content.get("media", None)
+        # If adding a user-sent media message
+        if media:
+            message = content.get("user_message", None)
+            content_json = [{
+                "type": "image",
+                "source": {
+                    "type": "url",
+                    "url": media[i].get("url")
+                }
+            } for i in media]
+            if message:
+                content_json.append({"type": "text", "text": message})
+        elif content.get("url", None):
+            content_json = [{
+                "type": "image",
+                "source": {
+                    "type": "url",
+                    "url": content.get("url")
+                }
+            }]
     elif isinstance(content, str):
         content_json = [{"type": "text", "text": content}]
     else:
