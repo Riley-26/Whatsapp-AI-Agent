@@ -27,8 +27,6 @@ import tempfile
 IMAGES_DIR = Path(tempfile.gettempdir()) / "images"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
-BACKEND_URL = "https://testing-production-2f9c.up.railway.app"
-
 @app.get("/")
 async def root():
     return {"message": "WhatsApp Agent Server"}
@@ -52,12 +50,9 @@ async def webhook_handler(
 ):
     print(f"Message from {From}: {Body}")
     agent_response_text, tool_result = get_response(From, Body)
+    public_url = tool_result.get("url", None)
     
-    if "IMAGE_ID: " in tool_result:
-        image_id = tool_result.split("IMAGE_ID: ")[1].split()[0]
-        image_format = tool_result.split("IMAGE_FORMAT: ")[1].split()[0]
-        public_url = f"{BACKEND_URL}/images/{image_id}.{image_format}"
-        
+    if public_url: # Checks if it's an image
         twilio_client.messages.create(
             from_="whatsapp:+14155238886",
             to=From,
