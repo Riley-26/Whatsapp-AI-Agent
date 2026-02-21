@@ -43,6 +43,8 @@ DO NOT update for:
 
 DO NOT update the sub-sections under the "Agent Profile" section (marked as [LOCKED] to help you).
 
+DO preserve formatting when editing the markdown, i.e. keep the newlines between sections.
+
 The context is limited, so only store what's genuinely valuable long-term.""",
         "input_schema": {
             "type": "object",
@@ -250,6 +252,11 @@ def _update_system_context(phone, section, content, action):
         )
     elif action == "replace":
         pass
+    elif action == "remove":
+        updated_context = current_context.replace(
+            header,
+            f"{header}\n- {content}"
+        )
     
     save_system_context(updated_context, phone)
     
