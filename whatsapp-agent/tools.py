@@ -233,16 +233,18 @@ def _update_system_context(phone, section, content, action):
     Update the markdown system context
     """
     current_context = get_system_context(phone)
-    
+    print(current_context)
     section_map = {}
     
     header = section_map[section]
+    print(1)
     
     if action == "add":
         updated_context = current_context.replace(
             header,
             f"{header}\n- {content}"
         )
+        print(2)
     elif action == "replace":
         pass
     
