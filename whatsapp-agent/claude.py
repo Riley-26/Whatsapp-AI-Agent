@@ -76,7 +76,7 @@ def get_response(phone, user_message, media, send_callback=None):
             tool_results = []
             for block in claude_response.content:
                 if block.type == "tool_use":
-                    result = execute_tool(block.name, block.input)
+                    result = execute_tool(block.name, block.input, phone)
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
