@@ -4,7 +4,7 @@ Contains all logic for Claude API requests
 
 '''
 import os
-from convo import get_history, add_message
+from convo import get_history, add_message, get_recent_history, get_system_context
 import anthropic
 from dotenv import load_dotenv
 from tools import execute_tool, tools
@@ -25,6 +25,8 @@ def get_response(phone, user_message, media, send_callback=None):
     :param send_callback: Optional function(text) called immediately when Claude
                           produces text alongside a tool_use request
     '''
+    system_context = get_system_context(phone)
+    
     if len(media) > 0:
         add_message(phone, "user", {
             "user_message": user_message,
@@ -32,7 +34,8 @@ def get_response(phone, user_message, media, send_callback=None):
         })
     else:
         add_message(phone, "user", user_message)
-    messages = get_history(phone)
+        
+    messages = [{"role": "user", "content": system_context}] + get_recent_history(phone)
     
     try:
         claude_response = client.messages.create(
@@ -73,7 +76,7 @@ def get_response(phone, user_message, media, send_callback=None):
             tool_results = []
             for block in claude_response.content:
                 if block.type == "tool_use":
-                    result = execute_tool(block.name, block.input)
+                    result = execute_tool(block.name, block.input, phone)
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,

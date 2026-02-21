@@ -12,6 +12,7 @@ from openai import OpenAI
 from io import BytesIO
 import os
 from dotenv import load_dotenv
+from convo import get_system_context, save_system_context
 
 load_dotenv()
 
@@ -26,27 +27,68 @@ BACKEND_URL = "https://testing-production-2f9c.up.railway.app"
 
 tools = [
     {
+        "name": "update_system_context",
+        "description": """Update the long-term system context with important information.
+
+Use this when you learn something significant about the user that should persist:
+- User preferences (image styles, communication preferences)
+- Important facts (their job, interests, location)
+- Patterns you've noticed (common requests, schedules)
+- Rules or principles for this specific user
+
+DO NOT update for:
+- Casual conversation
+- Temporary information
+- Single-use facts
+
+DO NOT update the sub-sections under the "Agent Profile" section (marked as [LOCKED] to help you).
+
+DO preserve formatting when editing the markdown, i.e. keep the newlines between sections.
+
+The context is limited, so only store what's genuinely valuable long-term.""",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "section": {
+                    "type": "string",
+                    "enum": ["user_info", "patterns", "domain_knowledge", "rules", "key_facts"],
+                    "description": "Which section to update"
+                },
+                "content": {
+                    "type": "string",
+                    "description": "What to add/update in that section"
+                },
+                "action": {
+                    "type": "string",
+                    "enum": ["add", "replace", "remove"],
+                    "description": "How to modify the section"
+                }
+            },
+            "required": ["section", "content", "action"]
+        }
+    },
+    {
         "name": "web_search",
         "type": "web_search_20250305"
     },
     {
         "name": "generate_image",
         "description": """Generate an image from a text description.
-        
-        Parse the user's message for preferences:
-        - Size keywords: "portrait", "landscape", "square"
-        - Quality keywords: "low-quality", "medium-quality", "high-quality"
-        - Format keywords: "png", "jpeg", "webp"
-        - Background keywords: "transparent" (NOTE: Transparent is only available if the format is "png" or "webp", omit otherwise)
-        - Style keywords: "vivid", "natural", "realistic"
-        
-        If no preferences mentioned, use and SPECIFY defaults: 1024x1024, standard quality, natural style.
-        
-        Examples:
-        - "Generate a portrait image of the moon in high quality" -> size=1024x1536, quality=high
-        - "Create a vivid landscape of mountains" -> size=1536x1024, style=vivid
-        - "Create a vivid landscape of mountains in a square size" -> size=1024x1024, style=vivid
-        - "Make a realistic square image of a cat" -> size=1024x1024, style=realistic""",
+
+Parse the user's message for preferences:
+- Size keywords: "portrait", "landscape", "square"
+- Quality keywords: "low-quality", "medium-quality", "high-quality"
+- Format keywords: "png", "jpeg", "webp"
+- Background keywords: "transparent" (NOTE: Transparent is only available if the format is "png" or "webp", omit otherwise)
+- Style keywords: "vivid", "natural", "realistic"
+
+If no preferences mentioned, use and SPECIFY defaults: 1024x1024, standard quality, natural style.
+
+Examples:
+- "Generate a portrait image of the moon in high quality" -> size=1024x1536, quality=high
+- "Create a vivid landscape of mountains" -> size=1536x1024, style=vivid
+- "Create a vivid landscape of mountains in a square size" -> size=1024x1024, style=vivid
+- "Make a realistic square image of a cat" -> size=1024x1024, style=realistic""",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -91,16 +133,16 @@ tools = [
     {
         "name": "edit_image",
         "description": """Edit a previously generated image from this conversation.
-    
-        To use this tool:
-        1. Look through the conversation history for images
-        2. Identify which image the user wants to edit (most recent, specific description, etc.)
-        3. Call this tool with the image reference and edit instructions
-        
-        Examples:
-        - "Edit the last image to make it darker" -> Find most recent image
-        - "Change the moon image to have stars" -> Find image with 'moon' in prompt
-        - "Make my cat image black and white" -> Find image with 'cat' in prompt""",
+
+To use this tool:
+1. Look through the conversation history for images
+2. Identify which image the user wants to edit (most recent, specific description, etc.)
+3. Call this tool with the image reference and edit instructions
+
+Examples:
+- "Edit the last image to make it darker" -> Find most recent image
+- "Change the moon image to have stars" -> Find image with 'moon' in prompt
+- "Make my cat image black and white" -> Find image with 'cat' in prompt""",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -123,7 +165,7 @@ tools = [
     }
 ]
 
-def execute_tool(tool_name, tool_input):
+def execute_tool(tool_name, tool_input, phone=None):
     '''
     Main execution of the desired tool
     
@@ -131,6 +173,8 @@ def execute_tool(tool_name, tool_input):
     :param input: Input by Claude, i.e. query for web search
     '''
     match tool_name:
+        case "update_system_context":
+            return _update_system_context(phone, tool_input["section"], tool_input["content"], tool_input["action"])
         case "generate_image":
             return _generate_image(
                 prompt=tool_input["prompt"],
@@ -140,6 +184,8 @@ def execute_tool(tool_name, tool_input):
                 background=tool_input.get("background"),
                 style=tool_input.get("style")
             )
+        case "edit_image":
+            return _edit_image()
         case _:
             return "No tool found"
             
@@ -183,3 +229,35 @@ def _generate_image(prompt, size="1024x1024", quality="medium", output_format="p
     
 def _edit_image():
     pass
+
+def _update_system_context(phone, section, content, action):
+    """
+    Update the markdown system context
+    """
+    current_context = get_system_context(phone)
+    section_headers = {
+        "user_info": "## User Information",
+        "patterns": "## Learned Patterns",
+        "domain_knowledge": "## Domain Knowledge",
+        "rules": "## Important Rules",
+        "key_facts": "## Key Facts to Remember"
+    }
+    
+    header = section_headers[section]
+    
+    if action == "add":
+        updated_context = current_context.replace(
+            header,
+            f"{header}\n- {content}"
+        )
+    elif action == "replace":
+        pass
+    elif action == "remove":
+        updated_context = current_context.replace(
+            header,
+            f"{header}\n- {content}"
+        )
+    
+    save_system_context(updated_context, phone)
+    
+    return "System context updated"
