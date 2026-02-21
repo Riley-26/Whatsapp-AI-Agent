@@ -25,9 +25,8 @@ twilio_client = Client(account_sid=os.getenv("TWILIO_ACCOUNT_SID"), password=os.
 
 PHONE_NUMBER = os.getenv("PHONE_NUMBER")
 
-# BACKEND_URL = "https://unstamped-rufus-discerningly.ngrok-free.dev"
-BACKEND_URL = "https://testing-dev.up.railway.app"
-# BACKEND_URL = "https://testing-production-2f9c.up.railway.app"
+# BACKEND_URL = "https://testing-dev.up.railway.app"
+BACKEND_URL = "https://testing-production-2f9c.up.railway.app"
 
 import tempfile
 IMAGES_DIR = Path(tempfile.gettempdir()) / "images"
