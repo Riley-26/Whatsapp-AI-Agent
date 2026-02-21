@@ -1,6 +1,6 @@
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, BackgroundTasks
 from fastapi.responses import FileResponse
 import uvicorn
 import asyncio
@@ -48,14 +48,30 @@ async def serve_image(image_id: str, image_format: str):
     
     return FileResponse(image_path, media_type=f"image/{image_format}")
 
+def send_whatsapp_message(to: str, text: str = None, image_url: str = None):
+    if image_url:
+        twilio_client.messages.create(
+            from_="whatsapp:+14155238886",
+            to=to,
+            media_url=[image_url],
+            body=text or ""
+        )
+    else:
+        twilio_client.messages.create(
+            from_="whatsapp:+14155238886",
+            to=to,
+            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
+            content_variables=json.dumps({"message": text}),
+        )
+
 @app.post("/webhook")
-async def webhook_handler(request: Request):
+async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
     form_data = await request.form()
     Body = form_data.get("Body", "")
     From = form_data.get("From", "")
     Media = form_data.get("NumMedia", "")
     Media_items = []
-    
+
     # Download and serve media items through our own endpoint
     if Media:
         for i in range(int(Media)):
@@ -80,40 +96,20 @@ async def webhook_handler(request: Request):
                 "url": local_url,
             })
 
-    def send_text_now(text: str):
-        twilio_client.messages.create(
-            from_="whatsapp:+14155238886",
-            to=From,
-            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
-            content_variables=json.dumps({"message": text}),
-        )
+    agent_response_text, tool_result = await asyncio.to_thread(
+        get_response, From, Body, Media_items,
+        lambda text: send_whatsapp_message(From, text=text)
+    )
 
-    agent_response_text, tool_result = await asyncio.to_thread(get_response, From, Body, Media_items, send_text_now)
-    
     if isinstance(tool_result, dict) and tool_result.get("type") == "image":
         source = tool_result.get("source", None)
-        public_url = source.get("url", None)
+        public_url = source.get("url", None) if source else None
     else:
         public_url = None
-    
-    if public_url: # Checks if it's an image
-        twilio_client.messages.create(
-            from_="whatsapp:+14155238886",
-            to=From,
-            media_url=[public_url],
-            body=agent_response_text if agent_response_text else ""
-        )
-        
-        return Response(content="", media_type="text/plain")
-    else:
-        twilio_client.messages.create(
-            from_="whatsapp:+14155238886",
-            to=From,
-            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
-            content_variables=json.dumps({"message": agent_response_text}),
-        )
 
-        return Response(content="", media_type="text/plain")
+    background_tasks.add_task(send_whatsapp_message, From, agent_response_text, public_url)
+
+    return Response(content="", media_type="text/plain")
     
 
 if __name__ == "__main__":
