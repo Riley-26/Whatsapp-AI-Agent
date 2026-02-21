@@ -60,8 +60,7 @@ def send_whatsapp_message(to: str, text: str = None, image_url: str = None):
         twilio_client.messages.create(
             from_="whatsapp:+14155238886",
             to=to,
-            content_sid="HX448d22e244c513bbe65a0645536b9e5c",
-            content_variables=json.dumps({"message": text}),
+            body=text
         )
 
 @app.post("/webhook")
