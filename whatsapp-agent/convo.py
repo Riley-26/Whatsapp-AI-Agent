@@ -67,7 +67,7 @@ def get_system_context(phone):
     with conn.cursor() as cur:
         cur.execute("""
             SELECT context_markdown FROM system_context
-            WHERE phone_number = %s            
+            WHERE phone_number = %s
         """, (phone,))
         row = cur.fetchone()
         
