@@ -36,6 +36,9 @@ Use this when you learn something significant about the user that should persist
 - Patterns you've noticed (common requests, schedules)
 - Rules or principles for this specific user
 
+When updating a section, append the new information. You should only replace existing information if it becomes redundant or outdated, or if the user requests for you to. 
+For example, if the user changes what the current project they're working on is.
+
 DO NOT update for:
 - Casual conversation
 - Temporary information
@@ -44,6 +47,8 @@ DO NOT update for:
 DO NOT update the sub-sections under the "Agent Profile" section (marked as [LOCKED] to help you).
 
 DO preserve formatting when editing the markdown, i.e. keep the newlines between sections.
+
+IMPORTANT: The tool replaces the entire section with the "content" parameter, therefore you MUST return the existing content along with the new information (usually only when adding information, but sometimes you may replace information)
 
 The context is limited, so only store what's genuinely valuable long-term.""",
         "input_schema": {
@@ -57,14 +62,9 @@ The context is limited, so only store what's genuinely valuable long-term.""",
                 "content": {
                     "type": "string",
                     "description": "What to add/update in that section"
-                },
-                "action": {
-                    "type": "string",
-                    "enum": ["add", "replace", "remove"],
-                    "description": "How to modify the section"
                 }
             },
-            "required": ["section", "content", "action"]
+            "required": ["section", "content"]
         }
     },
     {
@@ -245,18 +245,10 @@ def _update_system_context(phone, section, content, action):
     
     header = section_headers[section]
     
-    if action == "add":
-        updated_context = current_context.replace(
-            header,
-            f"{header}\n- {content}"
-        )
-    elif action == "replace":
-        pass
-    elif action == "remove":
-        updated_context = current_context.replace(
-            header,
-            f"{header}\n- {content}"
-        )
+    updated_context = current_context.replace(
+        header,
+        f"{header}\n- {content}"
+    )
     
     save_system_context(updated_context, phone)
     
