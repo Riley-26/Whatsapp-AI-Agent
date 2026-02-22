@@ -174,7 +174,7 @@ def execute_tool(tool_name, tool_input, phone=None):
     '''
     match tool_name:
         case "update_system_context":
-            return _update_system_context(phone, tool_input["section"], tool_input["content"], tool_input["action"])
+            return _update_system_context(phone, tool_input["section"], tool_input["content"])
         case "generate_image":
             return _generate_image(
                 prompt=tool_input["prompt"],
@@ -230,7 +230,7 @@ def _generate_image(prompt, size="1024x1024", quality="medium", output_format="p
 def _edit_image():
     pass
 
-def _update_system_context(phone, section, content, action):
+def _update_system_context(phone, section, content):
     """
     Update the markdown system context
     """
