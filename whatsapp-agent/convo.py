@@ -116,7 +116,7 @@ None yet.\n\n
 
 ## Key Facts to Remember\n
 None yet.\n\n
-"""
+        """
 
         cur.execute("""
             INSERT INTO system_context (phone_number, context_markdown)

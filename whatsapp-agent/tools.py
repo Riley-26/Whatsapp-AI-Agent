@@ -6,6 +6,7 @@ Tool suite
 from datetime import datetime
 from pathlib import Path
 import uuid
+import re
 import requests
 import base64
 from openai import OpenAI
@@ -232,7 +233,9 @@ def _edit_image():
 
 def _update_system_context(phone, section, content):
     """
-    Update the markdown system context
+    Update the markdown system context by replacing a section's body.
+    Splits the document at ## heading boundaries, swaps the target section's
+    body, then rejoins — preserving all formatting and blank lines.
     """
     current_context = get_system_context(phone)
     section_headers = {
@@ -242,14 +245,18 @@ def _update_system_context(phone, section, content):
         "rules": "## Important Rules",
         "key_facts": "## Key Facts to Remember"
     }
-    
+
     header = section_headers[section]
-    
-    updated_context = current_context.replace(
-        header,
-        f"{header}\n- {content}"
-    )
-    
-    save_system_context(updated_context, phone)
-    
+
+    # Split at every position immediately before a \n## boundary.
+    # Each part (except the first) will start with \n## and contain one section.
+    parts = re.split(r'(?=\n##)', current_context)
+
+    for i, part in enumerate(parts):
+        if part.startswith(f'\n{header}\n'):
+            parts[i] = f'\n{header}\n{content.rstrip()}\n'
+            break
+
+    save_system_context(''.join(parts), phone)
+
     return "System context updated"
